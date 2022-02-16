@@ -307,6 +307,15 @@ Update current config converting local mods to core except those preserved by LM
 
 
 so, we use localyesconfig to configure our kernel
+[COMPILAZIONE KERNEL](https://youtu.be/QCjjFqC-Ve8?t=1648)
+
+```
+make menuconfig
+```
+
+kERNEL COMPRESSION XZ
+
+
 ```
 make localyesconfig
 ```
