@@ -195,7 +195,7 @@ cd /var/db/kiss/installed && kiss build *
 
 We get the error:
 ```
-pigz-2.6 not founf
+pigz-2.6 not found
 ```
 to correct it, from host console:
 ```
@@ -239,6 +239,14 @@ cd linux-5.16.4
 
 ```
 ## [020] Download Firmware Blobs (If Required)
+
+```
+curl -fLO https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/snapshot/linux-firmware-20220209.tar.gz
+tar xvf FIRMWARE_SOURCE.tar.gz  
+mkdir -p /usr/lib/firmware
+cp -R ./path/to/driver /usr/lib/firmware
+```
+
 **no need**
 
 ## [021] Configure The Kernel
@@ -254,61 +262,25 @@ mv -f _ tools/objtool/arch/x86/decode.c
 
 ## [022] Install Required Packages
 
-## [023] perl
+## [023] perl, libelf, python
 ```
 kiss b perl
-```
-## [024] libelf
 kiss b libelf
+kiss b python
+kiss b ncurses
+```
+
+
+
 
 ## [025] Build The Kernel 
 
 make defconfig
 
 
-```
-make -j4
-```
-
-## [028] Install Kernel Image
-
-
-Installing some others things
-```
-kiss b e2fsprogs
-kiss b dosfstools
-```
-device manager
-
-```
-kiss b util-linux
-kiss b eudev 
-```
-
-dhcp
-```
-kiss b dhcpcd
-mkdir -p /etc/rc.d 
-echo "dhcpcd 2> /dev/null" > /etc/rc.d/dhcpcd.boot
-```
-hostname
-```
-echo "kisslinux" > /etc/hostname
-```
-
 [COMPILAZIONE KERNEL](https://youtu.be/QCjjFqC-Ve8?t=1648)
 
 Prima fase, creazione della configurazione:
-
-Installazione ncurses
-```
-kiss b ncurses
-```
-
-Installazione python
-```
-kiss b python
-```
 
 
 ```
@@ -374,9 +346,6 @@ lspci -k
 00:05.0 Class 0100: 1af4:1004 virtio-pci
 
 ```
-
-from make help, we find the option localyesconfig
-
 ### localyesconfig
 Update current config converting local mods to core except those preserved by LMC_KEEP environment variable.
 
@@ -385,6 +354,16 @@ so, we use localyesconfig to configure our kernel
 ```
 make localyesconfig
 ```
+
+Trovare le accorrenze mancanti, ad esempio CONFIG_VIRTIO_CONSOLE
+
+quindi, 
+
+```
+make menuconfig
+```
+premere / per la ricerca
+
 
 compiling kernel...
 
@@ -414,10 +393,33 @@ mv /boot/System.map /boot/System.map-VERSION
 kiss b baseinit
 ```
 
+Installing some others things
+```
+kiss b e2fsprogs
+kiss b dosfstools
+```
+## Device manager
+
+```
+kiss b util-linux
+kiss b eudev 
+```
+## dhcp
+```
+kiss b dhcpcd
+mkdir -p /etc/rc.d 
+echo "dhcpcd 2> /dev/null" > /etc/rc.d/dhcpcd.boot
+```
+hostname
+```
+echo "kisslinux" > /etc/hostname
+```
+
 ## [031] The Bootloader
 UEFI
 
 ```
+kiss b efibootmgr   
 kiss b grub 
 ```
 from the host
@@ -431,14 +433,3 @@ from chrooted env
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB 
 grub-mkconfig -o /boot/grub/grub.cfg 
 ```
-At this point we need to reboot and check.
-
-Symbol: PATA_ACPI [=n]                                                                                                                                                                │  
-  │   Prompt: ACPI firmware driver for PATA                                                                                                                                               │  
-  │   Depends on: ATA [=y] && ATA_SFF [=y] && ATA_ACPI [=y] && ATA_BMDMA [=y] && PCI [=y]                                                                                                 │  
-  │   Location:                                                                                                                                                                           │  
-  │     -> Device Drivers                                                                                                                                                                 │  
-  │       -> Serial ATA and Parallel ATA drivers (libata) (ATA [=y])                                                                                                                      │  
-  │ (1)     -> ATA SFF support (for legacy IDE and PATA) (ATA_SFF [=y])                                                                                                                   │  
-  │ Selects: PATA_TIMINGS [=y]                                                                                                                                                            │  
-  │                              
