@@ -131,13 +131,13 @@ KISS_PATH=$KISS_PATH:/var/community/community
 
 ```
 git clone https://github.com/kisslinux/repo
-sudo mv repo /var/
+mv repo /var/
 ```
 
 # [007a] Setup community repositury
 ```
 git clone https://github.com/kiss-community/community
-sudo mv community /var
+mv community /var
 
 ```
 # [009] Set KISS_PATH
@@ -183,6 +183,7 @@ kiss update the first update the package manager, the second it's necessary to b
 ```
 kiss update
 ```
+We need same time... 
 
 
 # [017] Rebuild All Packages
@@ -295,8 +296,83 @@ hostname
 echo "kisslinux" > /etc/hostname
 ```
 
+[COMPILAZIONE KERNEL](https://youtu.be/QCjjFqC-Ve8?t=1648)
+
+Prima fase, creazione della configurazione:
+
+Installazione ncurses
+```
+kiss b ncurses
+```
+
+Installazione python
+```
+kiss b python
+```
+
+
+```
+make menuconfig
+```
+Impostare la compressione del kernel XZ
+
+Setup -> Kernel compression mode ->XZ
+
+Quindi, exit
+Setup ->Default hostname -> mettere un nome
+
+Andiamo sotto fino a 
+
+```Initial RAM filesystem and RAM disk (initramfs/initrd) support```
+
+e disabilitiamo, inserendo uno spazio
+
+Quindi torniamo al menu superiore con Exit
+
+Selezioniamo:
+```Processor types and feathures```
+
+Andiamo su
+```Processor family```
+
+e selezioniamo: 
+```Generic-x86_64```
+
+Quindi, in basso, nel menu principale
+
+```kernel hacking```
+
+
+
+```printk and dmsg option```
+enable
+
+e selezioniamo i seguenti valori:
+```
+(4) Default console loglevel
+(1) quiet console loglevel
+(4) Default message log level
+```
+
+La prima fase è terminata!
+
+
 ```
 lspci -k
+
+00:01.2 Class 0c03: 8086:7020 uhci_hcd
+00:1f.0 Class 0604: 1b36:0001
+00:01.0 Class 0601: 8086:7000
+00:1e.0 Class 0604: 1b36:0001
+00:00.0 Class 0600: 8086:1237
+00:01.3 Class 0680: 8086:7113 piix4_smbus
+00:12.0 Class 0200: 1af4:1000 virtio-pci
+00:03.0 Class 00ff: 1af4:1002 virtio-pci
+00:01.1 Class 0101: 8086:7010 ata_piix
+00:09.0 Class 0780: 1af4:1003 virtio-pci
+00:02.0 Class 0300: 1b36:0100 qxl (scheda grafice)
+00:05.0 Class 0100: 1af4:1004 virtio-pci
+
 ```
 
 from make help, we find the option localyesconfig
@@ -304,17 +380,7 @@ from make help, we find the option localyesconfig
 ### localyesconfig
 Update current config converting local mods to core except those preserved by LMC_KEEP environment variable.
 
-
-
 so, we use localyesconfig to configure our kernel
-[COMPILAZIONE KERNEL](https://youtu.be/QCjjFqC-Ve8?t=1648)
-
-```
-make menuconfig
-```
-
-kERNEL COMPRESSION XZ
-
 
 ```
 make localyesconfig
@@ -334,7 +400,9 @@ This is for modules
 make INSTALL_MOD_STRIP=1 modules_install   
 ```
 
+ ```
 make install
+
 mv /boot/vmlinuz    /boot/vmlinuz-VERSION
 mv /boot/System.map /boot/System.map-VERSION 
 ```
@@ -357,8 +425,20 @@ from the host
 mkdir /mnt/boot/efi
 mount /dev/sda1 /mnt/boot/efi
 ```
+
 from chrooted env
 ```
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB 
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB 
 grub-mkconfig -o /boot/grub/grub.cfg 
 ```
+At this point we need to reboot and check.
+
+Symbol: PATA_ACPI [=n]                                                                                                                                                                │  
+  │   Prompt: ACPI firmware driver for PATA                                                                                                                                               │  
+  │   Depends on: ATA [=y] && ATA_SFF [=y] && ATA_ACPI [=y] && ATA_BMDMA [=y] && PCI [=y]                                                                                                 │  
+  │   Location:                                                                                                                                                                           │  
+  │     -> Device Drivers                                                                                                                                                                 │  
+  │       -> Serial ATA and Parallel ATA drivers (libata) (ATA [=y])                                                                                                                      │  
+  │ (1)     -> ATA SFF support (for legacy IDE and PATA) (ATA_SFF [=y])                                                                                                                   │  
+  │ Selects: PATA_TIMINGS [=y]                                                                                                                                                            │  
+  │                              
